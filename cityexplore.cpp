@@ -14,15 +14,7 @@
 #include <string>
 #include <iomanip>
 #include "nlohmann/json.hpp"
-#include "Windowbuild.h"
-#include "FL/Fl_Text_Buffer.H"
-#include "FL/Fl_File_Chooser.H"
-#include "FL/Fl_Text_Display.H"
-#include "FL/Fl_Tabs.H"
-#include "FL/Fl_Input_Choice.H"
-#include "FL/Fl_Choice.H"
-#include "FL/Fl_Menu_Item.H"
-#include "FL/fl_ask.H"
+#include "cityexplore.h"
 
 
 void choice_cb(Fl_Widget *w, void *userdata) {
@@ -37,24 +29,11 @@ void choice_cb(Fl_Widget *w, void *userdata) {
                                   ? "picked a menu item"
                                   : "typed text");
 }
-//int main() {
-//  Fl_Double_Window win(200,100,"Input Choice");
-//  win.begin();
-//    Fl_Input_Choice choice(10,10,100,30);
-//    choice.callback(choice_cb, 0);
-//    choice.add("Red");
-//    choice.add("Orange");
-//    choice.add("Yellow");
-//    //choice.value("Red");    // uncomment to make "Red" default
-//  win.end();
-//  win.show();
-//  return Fl::run();
-//}
 
 
 using json = nlohmann::json;
 
-int loaded = 0;
+//int loaded = 0;
 
 namespace CITY {
 	struct cities {
@@ -67,8 +46,8 @@ namespace CITY {
 	};
 }
 
-const unsigned int lengthFile = 8192;
-char * buffer[lengthFile];
+//const unsigned int lengthFile = 8192;
+//char * buffer[lengthFile];
 
 std::ifstream inputFile("/home/spurdo/cppworkspace/cityexplore/src/cities.json");
 std::filebuf * fileBuffer = inputFile.rdbuf();
