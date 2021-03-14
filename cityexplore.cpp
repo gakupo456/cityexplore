@@ -13,7 +13,6 @@
 #include <iostream>
 #include <string>
 #include <iomanip>
-//#include <type_traits>
 #include <typeinfo>
 #include <exception>
 #include <regex>
@@ -46,6 +45,8 @@ namespace FILTER {
 		values VALUE;
 	};
 }
+// I really wanted to use structs, but the because of the array, I had to let it go.
+
 int loaded = 0, nFilters, nCities;
 std::ifstream inputFile;
 std::ifstream filtersFile;
@@ -57,6 +58,7 @@ std::vector<FILTER::filters> eachFilter2;
 
 std::vector<std::map<std::string, std::string>> eachCity3;
 std::vector<std::map<std::string, std::string>> eachFilter3;
+std::vector<int> inCase;
 
 Fl_Input *filter, *resulInput;
 Fl_Text_Buffer *resbuffer = 0;
@@ -118,10 +120,12 @@ void  mainFilePicker(void) {
 
        json arrElements = jFile.at("cities");
 
+
       int nElemensInArr = arrElements.size();
      for (int k = 0; k < nElemensInArr; k++ ) {
-      for (auto aaa : arrElements[k].items())
-      {
+    	 std::map<std::string, std::string> lol2;
+    	 for (auto aaa : arrElements[k].items()) {
+
     	  std::string KEY = aaa.key();
     	  std::string VALUE;
     	  if (aaa.value().is_number()) {
@@ -130,12 +134,14 @@ void  mainFilePicker(void) {
     	  if (aaa.value().is_string()) {
     		  VALUE = aaa.value();
     	  }
-    	  std::map<std::string, std::string> lol2;
-    	  lol2[KEY]=VALUE;
-    	  eachCity3.push_back(lol2);
+
+    	  lol2.insert(std::pair<std::string, std::string>(KEY, VALUE));
 //          std::cout << "key: " << aaa.key() << ", value:" << aaa.value() << '\n';
       }
+      eachCity3.push_back(lol2);
      }
+//
+
        newTree->redraw();
        for (int i = 0; i < nElemensInArr; i++) {
     	   CITY::cities newcity;
@@ -193,6 +199,7 @@ void  mainFilePicker(void) {
 }
 
 
+
 void filterFilePicker(void) {
   int fileNum;
   char absolute[FL_PATH_MAX];
@@ -222,7 +229,10 @@ void filterFilePicker(void) {
 
       int nFilterElemensInArr = filterArrElements.size();
       nFilters = nFilterElemensInArr;
+
+
       for (int k = 0; k < nFilters; k++) {
+          std::map<std::string, std::string> lole;
             for (auto aaa : filterArrElements[k].items())
             {
           	  std::string KEY = aaa.key();
@@ -231,69 +241,27 @@ void filterFilePicker(void) {
           	  if (aaa.value().is_number()) {
           		  VALUE = std::to_string(aaa.value().get<int>());
           	  }
-          	  else if (aaa.value().is_string() && aaa.key() == "path") {
-          		  VALUE = aaa.value();
-          		  VALUE.erase(VALUE.begin());
-          		  std::cout << VALUE << std::endl;
-          	  }
           	  else if (aaa.value().is_string()) {
           		  VALUE = aaa.value();
+          		  if (VALUE.at(0) == '/') {
+          			  VALUE.erase(VALUE.begin());
+          		  }
           	  }
           	  else if(aaa.value().is_array()) {
           		 std::string replace;
-          		 int first = aaa.value()[0].get<int>(); int second = aaa.value()[1].get<int>();
-          		 VALUE = aaa.value()[0].get<int>() + ", " + aaa.value()[1].get<int>();
-          		 std::cout << aaa.value()[0] << std::endl;
-          		std::cout << aaa.value()[1] << std::endl;
+          		 int first = aaa.value()[0].get<int>(); int second = aaa.value()[1].get<int>(); inCase.push_back(first); inCase.push_back(second);
+          		 VALUE = std::to_string(aaa.value()[0].get<int>()) + ", " + std::to_string(aaa.value()[1].get<int>());
+//          		 std::cout << aaa.value()[0] << std::endl;
+//          		std::cout << aaa.value()[1] << std::endl;
 
-//          		 std::cout << VALUE << std::endl;
           	  }
-          	  std::map<std::string, std::string> lol2;
-          	  lol2[KEY]=VALUE;
-          	  eachFilter3.push_back(lol2);
-//                std::cout << "key: " << aaa.key() << ", value:" << aaa.value() << '\n';
+          	lole.insert(std::pair<std::string, std::string>(KEY, VALUE));
             }
-           }
-
-      for (int i = 0; i < nFilterElemensInArr; i++){
-
-    	 json jVALUE = filterArrElements[i];
-
-    	 std::map<int, int> vPlaceHolder;
-    	 int intPlaceHolder;
-    	 std::string sPLaceHolder;
-
-    	 if (jVALUE["value"].is_array()) {
-    		 int a = jVALUE["value"].at(0).get<int>();
-    		 int b = jVALUE["value"].at(1).get<int>();
-    		 vPlaceHolder.insert(std::pair<int, int>(a, b));
-    		 FILTER::filters newFilter;
-    		 newFilter.path = filterArrElements[i].at("path").get<std::string>();
-			 newFilter.operation = filterArrElements[i].at("op").get<std::string>();
-			 newFilter.VALUE.intVal = 0;
-			 newFilter.VALUE.mapVal = vPlaceHolder;
-			 newFilter.VALUE.reg_ex = "array";
-			 eachFilter2.push_back(newFilter);
-    	 } else if (jVALUE["value"].is_number()) {
-    		 intPlaceHolder = jVALUE["value"] ;
-    		 FILTER::filters newFilter;
-    		 newFilter.path = filterArrElements[i].at("path").get<std::string>();
-    	 	 newFilter.operation = filterArrElements[i].at("op").get<std::string>();
-			 newFilter.VALUE.intVal = intPlaceHolder;
-			 newFilter.VALUE.mapVal = vPlaceHolder;
-			 newFilter.VALUE.reg_ex = "integer";
-			 eachFilter2.push_back(newFilter);
-    	 } else if (jVALUE["value"].is_string()) {
-    		  sPLaceHolder = jVALUE["value"];
-    		  FILTER::filters newFilter;
-    		  newFilter.path = filterArrElements[i].at("path").get<std::string>();
-    		  newFilter.operation = filterArrElements[i].at("op").get<std::string>();
-			  newFilter.VALUE.intVal = 0;
-			  newFilter.VALUE.mapVal =	vPlaceHolder;
-			  newFilter.VALUE.reg_ex =	sPLaceHolder;
-			  eachFilter2.push_back(newFilter);
-    	  }
+            eachFilter3.push_back(lole);
       }
+
+
+
       loaded++;
       loadFiltersJson->deactivate();
       if (loaded == 2)
@@ -319,35 +287,101 @@ void reset(Fl_Widget *btn){
 	resbuffer->text("");
 }
 
-void compare(Fl_Widget *, void *) {
+bool comparisonCase(std::string comp, std::string leftval, std::string rightval) {
 
-	// a) remove "/"s b) check if the filter key exists in city vector element
-	// c) check to see if the filter operation includes this element
-	//print if it does include the element
+	bool lole = false;
+	if (comp == "gt") {
+		if (std::stoi(leftval) < std::stoi(rightval)) {
+			lole = true;
+		}
+	} else
+
+	if (comp == "lt") {
+		if (std::stoi(leftval) > std::stoi(rightval))
+			lole = true;
+	} else
+
+	if (comp == "ge") {
+		if (std::stoi(leftval) <= std::stoi(rightval))
+			lole = true;
+	} else
+
+	if (comp == "le") {
+		if (std::stoi(leftval) >= std::stoi(rightval))
+			lole = true;
+	} else
+
+	if (comp == "eq") {
+		if (std::stoi(leftval) == std::stoi(rightval))
+			lole = true;
+	}
+
+	return lole;
+}
+
+std::string comparisonStr(std::string comp) {
+
+	if (comp == "gt")
+		return " greater than ";
+	else if (comp == "lt")
+		return " lesser than ";
+	else if (comp == "ge")
+		return " greater than and/or equal to ";
+	else if (comp == "le")
+		return " lesser than and/or equal to ";
+	else if (comp == "eq")
+		return " equal to ";
+}
+
+
+
+void compare(Fl_Widget *, void *) {
 
 	std::string AAAAA;
 
-	for (int i = 0; i < eachFilter3.size(); i++) {
-		for (auto& k : eachFilter3[i]) {
-			AAAAA += k.first + " : " + k.second + "\n";
+	for (int c = 0; c < eachCity3.size(); c++){
+	for (int f = 0; f < eachFilter3.size(); f++) { //for each city in the vector
 
-			std::cout <<  k.first << "    " << k.second << std::endl;
+
+			if (eachCity3[c].count(eachFilter3[f]["path"]) > 0) {
+				std::string operation = eachFilter3[f]["op"];
+				if (operation == "gt" || operation == "lt" || operation == "le" || operation == "ge" || operation == "eq"){
+				if (comparisonCase(operation, eachFilter3[f]["value"] , eachCity3[c].find(eachFilter3[f]["path"])->second) == true)
+				{
+					AAAAA += "Found result for: " + eachFilter3[f]["path"] + " " + comparisonStr(operation) + " " + eachFilter3[f]["value"]+ ": " + "\n" ;
+					AAAAA += eachCity3[c]["city"] +  " --> "  + eachFilter3[f]["path"] + ": " + eachCity3[c].find(eachFilter3[f]["path"])->second + "\n";
+				}}
+				else if (operation == "in") {
+					std::string str = eachCity3[c].find(eachFilter3[f]["path"])->second;
+					int num = std::stoi(str);
+					if (inCase[0] < num && inCase[1] > num) {
+					AAAAA += "Found result for: " + eachFilter3[f]["path"] + " in between " + std::to_string(inCase[0]) + " and " + std::to_string(inCase[1]);
+					AAAAA += "\n" + eachCity3[c]["city"] + " --> " + eachFilter3[f]["path"] + ": " + eachCity3[c].find(eachFilter3[f]["path"])->second + "\n";
+					}
+				}
+				else if (operation == "re") {
+					std::string lole = eachFilter3[f]["value"];
+					std::regex regexp;
+					regexp = lole;
+					std::string strToFind = eachCity3[c].find(eachFilter3[f]["path"])->second;
+
+					if (std::regex_match(strToFind, regexp)) {
+
+						AAAAA+= "Found result for: " + eachFilter3[f]["path"] + " for the regular expression " + "\"" +
+								lole + "\" \n" + eachCity3[c]["city"] + " --> " + eachFilter3[f]["path"] + ": " + eachCity3[c].find(eachFilter3[f]["path"])->second + "\n";
+
+					}
+
+				}
+
+			}
 		}
-	}
 
-	for (int m = 0; m < eachCity3.size(); m++) {
-		for (auto& p : eachCity3[m]) {
-			AAAAA += p.first + "     " + p.second + "\n";
-
-			std::cout << p.first << "      " << p.second << std::endl;
-		}
 	}
 
 	char ARR[AAAAA.size()+1];
 	strcpy(ARR, AAAAA.c_str());
 	resbuffer->append(ARR);
-//	resultsDisplay->redraw();
-//	resultsDisplay->buffer(resbuffer);
 }
 
 void closeCallBack(Fl_Widget*, void*) {exit(0);}
@@ -374,13 +408,9 @@ int main(int  argc,char *argv[]) {
 	resbuffer = new Fl_Text_Buffer;
 
 	resultsDisplay = new Fl_Text_Editor(360, 200, 550, 420, "Results" );
-	 resultsDisplay->textfont(FL_COURIER);
-//	 resultsDisplay->activate();
-//	 resultsDisplay->textsize(TS);
-	 resultsDisplay->buffer(resbuffer);
-//	 resultsDisplay->wrap();
-//	 resultsDisplay->callback((Fl_Callback *)compare);
-	  resultsDisplay->show();
+	resultsDisplay->textfont(FL_COURIER);
+	resultsDisplay->buffer(resbuffer);
+	resultsDisplay->show();
 
 	Fl_Button* resetBtn = new Fl_Button(925, 180, 50, 40, "Reset");
 	resetBtn->callback(reset);

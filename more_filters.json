@@ -1,0 +1,39 @@
+{
+  "filters": [
+    {
+      "path": "/area",
+      "op": "gt",
+      "value": 200
+    },
+    {
+      "path": "/population",
+      "op": "in",
+      "value": [40000, 60000]
+    },
+    {
+      "path": "/recreations/parks",
+      "op": "lt",
+      "value": 5
+    },
+    {
+      "path": "/voivodeship",
+      "op": "re",
+      "value": "^p.*$"
+    },
+    {
+      "path": "/population",
+      "op": "gt",
+      "value": 100000
+    },
+    {
+      "path": "/population_density",
+      "op": "lt",
+      "value": 3000
+    },
+    {
+      "path": "/area",
+      "op": "eq",
+      "value": 5
+    }
+  ]
+}
