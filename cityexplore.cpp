@@ -1,9 +1,9 @@
 //============================================================================
-// Name        : cityexplore.cpp
+// Name        : CityExplore++!
 // Author      : Tomás Ayala
-// Version     : 0.7
+// Version     : 1.0
 // Copyright   : Free to copy under my authorization
-// Description : c++ recruitment task
+// Description : C++ recruitment task
 //============================================================================
 #include <fstream>
 #include <map>
@@ -66,126 +66,104 @@ Fl_File_Browser *mainFileSelected, *jsonBrowser;
 Fl_File_Chooser *fileChooser;
 Fl_Button *button, *loadFiltersJson, *loadFileJson;
 Fl_Text_Editor *resultsDisplay;
-//Fl_Text_Display *resultsDisplay;
 Fl_Tree *newTree;
 Fl_Double_Window *win;
 Fl_Menu_Bar *bar;
 
-void choice_cb(Fl_Widget *w, void *userdata) {
-  // Show info about the picked item
-  Fl_Input_Choice *choice = (Fl_Input_Choice*)w;
-  const Fl_Menu_Item *item = choice->menubutton()->mvalue();
-  printf("*** Choice Callback:\n");
-  printf("    item label()='%s'\n", item ? item->label() : "(No item)");
-  printf("    item value()=%d\n", choice->menubutton()->value());
-  printf("    input value()='%s'\n", choice->input()->value());
-  printf("    The user %s\n", choice->menubutton()->changed()
-                                  ? "picked a menu item"
-                                  : "typed text");
-}
-
-void fileChooserCallback(Fl_File_Chooser *fileChooser, void *data) {
-  const char *filename;
-  printf("fileChooser_callback(fileChooser = %p, data = %p)\n", fileChooser, data);
-  filename = fileChooser->value();
-  printf("    filename = \"%s\"\n", filename ? filename : "(null)");
-}
 void compare(Fl_Widget *, void*);
 
 void  mainFilePicker(void) {
-  int fileNum;
-  char relative[FL_PATH_MAX];
-  char absolute[FL_PATH_MAX];
+	int fileNum;
+	char relative[FL_PATH_MAX];
+	char absolute[FL_PATH_MAX];
 
-  if (filter->value()[0])
-	  fileChooser->filter(filter->value());
-  	  fileChooser->show();
-  while (fileChooser->visible()) {
-	  Fl::wait();
-  }
-  fileNum = fileChooser->count();
-  if (fileNum > 0) {
-	  mainFileSelected->clear();
-	  for (int i = 1; i <= fileNum; i ++) {
-      if (!fileChooser->value(i))
-        break;
-      fl_filename_absolute(absolute, sizeof(absolute), fileChooser->value(i));
-      mainFileSelected->add(absolute);
+	if (filter->value()[0])
+		fileChooser->filter(filter->value());
+  		fileChooser->show();
 
-      inputFile.open(absolute);
+  	while (fileChooser->visible()) {
+  		Fl::wait();
+  	}
 
-      inputFile >> jFile;
+  	fileNum = fileChooser->count();
 
-	  if (jFile.contains("cities") == true ) {
+  	if (fileNum > 0) {
+  		mainFileSelected->clear();
+  		for (int i = 1; i <= fileNum; i ++) {
+  			if (!fileChooser->value(i))
+  				break;
 
-       json arrElements = jFile.at("cities");
+  		fl_filename_absolute(absolute, sizeof(absolute), fileChooser->value(i));
+  		mainFileSelected->add(absolute);
+
+  		inputFile.open(absolute);
+
+  		inputFile >> jFile;
+
+  		if (jFile.contains("cities") == true ) {
+
+  			json arrElements = jFile.at("cities");
 
 
-      int nElemensInArr = arrElements.size();
-     for (int k = 0; k < nElemensInArr; k++ ) {
-    	 std::map<std::string, std::string> lol2;
-    	 for (auto aaa : arrElements[k].items()) {
+  			int nElemensInArr = arrElements.size();
+  			for (int k = 0; k < nElemensInArr; k++ ) {
+  				std::map<std::string, std::string> lol2;
+  				for (auto aaa : arrElements[k].items()) {
 
-    	  std::string KEY = aaa.key();
-    	  std::string VALUE;
-    	  if (aaa.value().is_number()) {
-    		  VALUE = std::to_string(aaa.value().get<int>());
-    	  }
-    	  if (aaa.value().is_string()) {
-    		  VALUE = aaa.value();
-    	  }
-
-    	  lol2.insert(std::pair<std::string, std::string>(KEY, VALUE));
-//          std::cout << "key: " << aaa.key() << ", value:" << aaa.value() << '\n';
-      }
-      eachCity3.push_back(lol2);
-     }
-//
-
+  					std::string KEY = aaa.key();
+  					std::string VALUE;
+  					if (aaa.value().is_number()) {
+  						VALUE = std::to_string(aaa.value().get<int>());
+  					}
+  					if (aaa.value().is_string()) {
+  						VALUE = aaa.value();
+  					}
+  					lol2.insert(std::pair<std::string, std::string>(KEY, VALUE));
+  				}
+  				eachCity3.push_back(lol2);
+  			}
        newTree->redraw();
        for (int i = 0; i < nElemensInArr; i++) {
     	   CITY::cities newcity;
     	   newcity.cityName = arrElements[i].at("city").get<std::string>();
     	   newcity.cityCounty = arrElements[i].at("country").get<std::string>();
-			newcity.voivodeship = arrElements[i].at("voivodeship").get<std::string>();
+    	   newcity.voivodeship = arrElements[i].at("voivodeship").get<std::string>();
 		   newcity.area = arrElements[i].at("area").get<float>();
-		 newcity.population = arrElements[i].at("population").get<int>();
-		 newcity.populationDensity = arrElements[i].at("population_density").get<int>();
-		 eachCity2.push_back(newcity);
+		   newcity.population = arrElements[i].at("population").get<int>();
+		   newcity.populationDensity = arrElements[i].at("population_density").get<int>();
+		   eachCity2.push_back(newcity);
        }
 
       newTree->changed();
 
       std::string firstStr;
-        for (int i = 0; i < nElemensInArr; i++) {
-        std::string firstStr = eachCity2[i].cityName; int num1=firstStr.size(); char firstArr[num1 +1];
-        std::string secondStr = firstStr + "/" + "County: " + eachCity2[i].cityCounty; int num2 = secondStr.size(); char secondArr[num2+1];
-        std::string thirdStr = firstStr + "/" + "Voivodeship: " + eachCity2[i].voivodeship; int num3 = thirdStr.size(); char thirdArr[num3+1];
-        std::string fourthStr = firstStr + "/" + "Area: " + std::to_string(eachCity2[i].area); int num4 = fourthStr.size(); char fourthArr[num4+1];
-        std::string fifthStr = firstStr + "/" + "Population: " + std::to_string(eachCity2[i].population);int num5 = fifthStr.size(); char fifthArr[num5+1];
-        std::string sixthStr = firstStr + "/" + "Population Density: " + std::to_string(eachCity2[i].populationDensity);int num6 = sixthStr.size(); char sixthArr[num6+1];
+      for (int i = 0; i < nElemensInArr; i++) {
+    	  std::string firstStr = eachCity2[i].cityName; int num1=firstStr.size(); char firstArr[num1 +1];
+    	  std::string secondStr = firstStr + "/" + "County: " + eachCity2[i].cityCounty; int num2 = secondStr.size(); char secondArr[num2+1];
+    	  std::string thirdStr = firstStr + "/" + "Voivodeship: " + eachCity2[i].voivodeship; int num3 = thirdStr.size(); char thirdArr[num3+1];
+    	  std::string fourthStr = firstStr + "/" + "Area: " + std::to_string(eachCity2[i].area); int num4 = fourthStr.size(); char fourthArr[num4+1];
+    	  std::string fifthStr = firstStr + "/" + "Population: " + std::to_string(eachCity2[i].population);int num5 = fifthStr.size(); char fifthArr[num5+1];
+    	  std::string sixthStr = firstStr + "/" + "Population Density: " + std::to_string(eachCity2[i].populationDensity);int num6 = sixthStr.size(); char sixthArr[num6+1];
 
-        strcpy(firstArr, firstStr.c_str());
-        newTree->add(firstArr)->close();
-        strcpy(secondArr, secondStr.c_str());
-        newTree->add(secondArr);
-        strcpy(thirdArr, thirdStr.c_str());
-        newTree->add(thirdArr);
-        strcpy(fourthArr, fourthStr.c_str());
-        newTree->add(fourthArr);
-        strcpy(fifthArr, fifthStr.c_str());
-        newTree->add(fifthArr);
-        strcpy(sixthArr, sixthStr.c_str());
-        newTree->add(sixthArr);
-        }
+    	  strcpy(firstArr, firstStr.c_str());
+    	  newTree->add(firstArr)->close();
+    	  strcpy(secondArr, secondStr.c_str());
+    	  newTree->add(secondArr);
+    	  strcpy(thirdArr, thirdStr.c_str());
+    	  newTree->add(thirdArr);
+    	  strcpy(fourthArr, fourthStr.c_str());
+    	  newTree->add(fourthArr);
+    	  strcpy(fifthArr, fifthStr.c_str());
+    	  newTree->add(fifthArr);
+    	  strcpy(sixthArr, sixthStr.c_str());
+    	  newTree->add(sixthArr);
+      }
 
-
-        loaded++;
-        loadFileJson->deactivate();
-        if(loaded == 2)
-       compare(resultsDisplay, 0);
-       newTree->redraw();
-
+      loaded++;
+      loadFileJson->deactivate();
+      if(loaded == 2)
+    	  compare(resultsDisplay, 0);
+      newTree->redraw();
 
     } else if (jFile.contains("cities") == false) {
     	inputFile.close();
@@ -193,7 +171,7 @@ void  mainFilePicker(void) {
     }
 
 	mainFileSelected->redraw();
-	  }
+  	}
   newTree->redraw();
   }
 }
@@ -201,78 +179,63 @@ void  mainFilePicker(void) {
 
 
 void filterFilePicker(void) {
-  int fileNum;
-  char absolute[FL_PATH_MAX];
-
-  if (filter->value()[0])
-	  fileChooser->filter(filter->value());
-  	  fileChooser->show();
-  while (fileChooser->visible()) {
-	  Fl::wait();
-  }
-  fileNum = fileChooser->count();
-  if (fileNum > 0) {
-	  jsonBrowser->clear();
-	  for (int i = 1; i <= fileNum; i ++) {
-      if (!fileChooser->value(i))
-        break;
-      fl_filename_absolute(absolute, sizeof(absolute), fileChooser->value(i));
-      jsonBrowser->add(absolute);
-      jsonBrowser->redraw();
-
-      filtersFile.open(absolute);
-      filtersFile >> jFilter;
-      filtersFile.close();
-
-   if(jFilter.contains("filters") == true) {
-	  json filterArrElements = jFilter.at("filters");
-
-      int nFilterElemensInArr = filterArrElements.size();
-      nFilters = nFilterElemensInArr;
-
-
-      for (int k = 0; k < nFilters; k++) {
-          std::map<std::string, std::string> lole;
-            for (auto aaa : filterArrElements[k].items())
-            {
-          	  std::string KEY = aaa.key();
-          	  std::string VALUE;
-
-          	  if (aaa.value().is_number()) {
-          		  VALUE = std::to_string(aaa.value().get<int>());
-          	  }
-          	  else if (aaa.value().is_string()) {
-          		  VALUE = aaa.value();
-          		  if (VALUE.at(0) == '/') {
-          			  VALUE.erase(VALUE.begin());
-          		  }
-          	  }
-          	  else if(aaa.value().is_array()) {
-          		 std::string replace;
-          		 int first = aaa.value()[0].get<int>(); int second = aaa.value()[1].get<int>(); inCase.push_back(first); inCase.push_back(second);
-          		 VALUE = std::to_string(aaa.value()[0].get<int>()) + ", " + std::to_string(aaa.value()[1].get<int>());
-//          		 std::cout << aaa.value()[0] << std::endl;
-//          		std::cout << aaa.value()[1] << std::endl;
-
-          	  }
-          	lole.insert(std::pair<std::string, std::string>(KEY, VALUE));
-            }
-            eachFilter3.push_back(lole);
-      }
-
-
-
-      loaded++;
-      loadFiltersJson->deactivate();
-      if (loaded == 2)
-      compare(resultsDisplay, 0);
-    } else if (jFilter.contains("filters") == false) {
-
-    	fl_message("INVALID FILTERS FILE, NO COMPATIBLE FILTER FOUND");
-    }
-	jsonBrowser->redraw();
-  }
-  }
+	int fileNum;
+	char absolute[FL_PATH_MAX];
+	if (filter->value()[0])
+		fileChooser->filter(filter->value());
+	fileChooser->show();
+	while (fileChooser->visible()) {
+		Fl::wait();
+	}
+	fileNum = fileChooser->count();
+	if (fileNum > 0) {
+		jsonBrowser->clear();
+		for (int i = 1; i <= fileNum; i ++) {
+			if (!fileChooser->value(i))
+				break;
+			fl_filename_absolute(absolute, sizeof(absolute), fileChooser->value(i));
+			jsonBrowser->add(absolute);
+			jsonBrowser->redraw();
+			filtersFile.open(absolute);
+			filtersFile >> jFilter;
+			filtersFile.close();
+			if(jFilter.contains("filters") == true) {
+				json filterArrElements = jFilter.at("filters");
+				int nFilterElemensInArr = filterArrElements.size();
+				nFilters = nFilterElemensInArr;
+				for (int k = 0; k < nFilters; k++) {
+					std::map<std::string, std::string> lole;
+					for (auto aaa : filterArrElements[k].items()){
+						std::string KEY = aaa.key();
+						std::string VALUE;
+						if (aaa.value().is_number()) {
+							VALUE = std::to_string(aaa.value().get<int>());
+						}
+						else if (aaa.value().is_string()) {
+							VALUE = aaa.value();
+							if (VALUE.at(0) == '/') {
+								VALUE.erase(VALUE.begin());
+							}
+						}
+						else if(aaa.value().is_array()) {
+							std::string replace;
+							int first = aaa.value()[0].get<int>(); int second = aaa.value()[1].get<int>(); inCase.push_back(first); inCase.push_back(second);
+							VALUE = std::to_string(aaa.value()[0].get<int>()) + ", " + std::to_string(aaa.value()[1].get<int>());
+						}
+						lole.insert(std::pair<std::string, std::string>(KEY, VALUE));
+					}
+					eachFilter3.push_back(lole);
+				}
+				loaded++;
+				loadFiltersJson->deactivate();
+				if (loaded == 2)
+					compare(resultsDisplay, 0);
+			} else if (jFilter.contains("filters") == false) {
+				fl_message("INVALID FILTERS FILE, NO COMPATIBLE FILTER FOUND");
+			}
+			jsonBrowser->redraw();
+		}
+	}
 }
 
 void abt(Fl_Widget *about) {
@@ -340,23 +303,22 @@ void compare(Fl_Widget *, void *) {
 	std::string AAAAA;
 
 	for (int c = 0; c < eachCity3.size(); c++){
-	for (int f = 0; f < eachFilter3.size(); f++) { //for each city in the vector
-
-
+		for (int f = 0; f < eachFilter3.size(); f++) { //for each city in the vector
 			if (eachCity3[c].count(eachFilter3[f]["path"]) > 0) {
 				std::string operation = eachFilter3[f]["op"];
 				if (operation == "gt" || operation == "lt" || operation == "le" || operation == "ge" || operation == "eq"){
-				if (comparisonCase(operation, eachFilter3[f]["value"] , eachCity3[c].find(eachFilter3[f]["path"])->second) == true)
-				{
-					AAAAA += "Found result for: " + eachFilter3[f]["path"] + " " + comparisonStr(operation) + " " + eachFilter3[f]["value"]+ ": " + "\n" ;
-					AAAAA += eachCity3[c]["city"] +  " --> "  + eachFilter3[f]["path"] + ": " + eachCity3[c].find(eachFilter3[f]["path"])->second + "\n";
-				}}
+					if (comparisonCase(operation, eachFilter3[f]["value"] , eachCity3[c].find(eachFilter3[f]["path"])->second) == true)
+					{
+						AAAAA += "Found result for: " + eachFilter3[f]["path"] + " " + comparisonStr(operation) + " " + eachFilter3[f]["value"]+ ": " + "\n" ;
+						AAAAA += eachCity3[c]["city"] +  " --> "  + eachFilter3[f]["path"] + ": " + eachCity3[c].find(eachFilter3[f]["path"])->second + "\n";
+					}
+				}
 				else if (operation == "in") {
 					std::string str = eachCity3[c].find(eachFilter3[f]["path"])->second;
 					int num = std::stoi(str);
 					if (inCase[0] < num && inCase[1] > num) {
-					AAAAA += "Found result for: " + eachFilter3[f]["path"] + " in between " + std::to_string(inCase[0]) + " and " + std::to_string(inCase[1]);
-					AAAAA += "\n" + eachCity3[c]["city"] + " --> " + eachFilter3[f]["path"] + ": " + eachCity3[c].find(eachFilter3[f]["path"])->second + "\n";
+						AAAAA += "Found result for: " + eachFilter3[f]["path"] + " in between " + std::to_string(inCase[0]) + " and " + std::to_string(inCase[1]);
+						AAAAA += "\n" + eachCity3[c]["city"] + " --> " + eachFilter3[f]["path"] + ": " + eachCity3[c].find(eachFilter3[f]["path"])->second + "\n";
 					}
 				}
 				else if (operation == "re") {
@@ -364,21 +326,14 @@ void compare(Fl_Widget *, void *) {
 					std::regex regexp;
 					regexp = lole;
 					std::string strToFind = eachCity3[c].find(eachFilter3[f]["path"])->second;
-
 					if (std::regex_match(strToFind, regexp)) {
-
 						AAAAA+= "Found result for: " + eachFilter3[f]["path"] + " for the regular expression " + "\"" +
 								lole + "\" \n" + eachCity3[c]["city"] + " --> " + eachFilter3[f]["path"] + ": " + eachCity3[c].find(eachFilter3[f]["path"])->second + "\n";
-
 					}
-
 				}
-
 			}
 		}
-
 	}
-
 	char ARR[AAAAA.size()+1];
 	strcpy(ARR, AAAAA.c_str());
 	resbuffer->append(ARR);
@@ -425,15 +380,15 @@ int main(int  argc,char *argv[]) {
 
 	jsonBrowser = new Fl_File_Browser(515, 115, 125, 40, "Filter file");
 
-	 filter = new Fl_Input(50, 10, 315, 25, "Filter:");
-	 filter->hide();
-	  int argn = 1;
-	  if (argc > argn)
-	     filter->value(argv[argn]);
-	   else
-	     filter->value("JSON Files (*.json)");
+	filter = new Fl_Input(50, 10, 315, 25, "Filter:");
+	filter->hide();
+	int argn = 1;
+	if (argc > argn)
+		filter->value(argv[argn]);
+	else
+		filter->value("JSON Files (*.json)");
 
-	 startTab->end();
+	startTab->end();
 
 	win->show();
 	return Fl::run();
